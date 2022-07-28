@@ -1,0 +1,1065 @@
+---
+title: "COVID-19 EN SONORA"
+output: 
+  flexdashboard::flex_dashboard:
+    navbar:
+    favicon: MAPATEXT.png
+    logo: SEDespacio.png
+    theme: flatly
+    orientation: rows
+---
+<style>                     
+.navbar {
+  background-color:#58BCBC;
+  border-color:black;
+  hover-color:black;
+}
+navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+  color: black;
+  background-color: white;
+}
+.navbar-inverse .navbar-nav > .active > a,
+.navbar-inverse .navbar-nav > .active > a:hover,
+.navbar-inverse .navbar-nav > .active > a:focus {
+  color: black;
+  background-color: white;
+}
+.navbar-inverse .navbar-toggle:hover,
+.navbar-inverse .navbar-toggle:focus {
+  background-color: black;
+}
+.navbar-inverse .navbar-collapse,
+.navbar-inverse .navbar-form {
+  border-color: black;
+{
+.navbar-brand {
+font-family: Lato Black
+}
+.navbar-logo{
+    vertical-align:middle;
+}
+
+</style>  
+
+
+
+<script>
+$('.navbar-logo').wrap('<a href="http://www.sonoraendatos.com" target=_blank>');
+</script>
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(extrafont)
+library(scales)
+library(plotly)
+library(htmlwidgets)
+library(showtext)
+library(tint)
+library(rgdal)
+library(rgeos)
+library(ggiraph)
+library(miniUI)
+library(units)
+library(reactable)
+library(lubridate)
+library(zoo)
+library(leaflet)
+library("Cairo")
+library(htmltools)
+library(rcartocolor)
+```
+
+```{r, include=FALSE}
+POBMUN <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/POBMUN.csv", locale = locale(encoding = "ISO-8859-1"), col_types = cols(CVEGEO = col_character()))
+Sonora.DF <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/ST_SonoraReporte_SSFED.csv", 
+                      col_types = cols(fecha_reporte = col_date(format = "%Y-%m-%d"))) %>% 
+  rename(Fecha=fecha_reporte, Pruebas=Resultados_lab, Confirmados=Casos) %>% filter(!is.na(Fecha))  
+Sonora.DF <- mutate(Sonora.DF, Positividad.acum= round((Confirmados_lab / Pruebas)*100,1))
+dia.act <- max(as.Date(Sonora.DF$Fecha))-14
+
+Sonora.Defuncion <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/ST_SonoraDefuncion_SSFED.csv", 
+                             col_types = cols(fecha_def = col_date(format = "%Y-%m-%d"))) %>% rename(Fecha=fecha_def) %>% 
+  filter(Fecha>as.Date("2020-03-03"))  %>% filter(!is.na(Fecha))
+Sonora.Sintomas <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/ST_SonoraSintomas_SSFED.csv", 
+                            col_types = cols(fecha_sintomas = col_date(format = "%Y-%m-%d"))) %>% rename(Fecha=fecha_sintomas) %>% filter(Fecha>as.Date("2020-03-03"))  %>% filter(!is.na(Fecha))
+
+dia<-max(as.Date(Sonora.DF$Fecha))
+
+lundom <- weekdays(dia)
+Casossemana <- Sonora.DF  %>% filter(!is.na(Fecha)) %>% mutate(diasemana = weekdays(Fecha)) %>% 
+  filter(diasemana==lundom)
+
+Casossemana <- mutate(Casossemana, Analizados.semana= Analizados - lag(Analizados, default = Analizados[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, Casos.semana= Confirmados - lag(Confirmados, default = Confirmados[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, Confirmados.semana= Confirmados_lab - lag(Confirmados_lab, default = Confirmados_lab[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, hospitalizados.semana= Hospitalizados - lag(Hospitalizados, default = Confirmados_lab[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, Decesos.semana= Decesos - lag(Decesos, default = Decesos[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, Pruebas.semana= Pruebas - lag(Pruebas, default = Pruebas[1]))
+Casossemana <- mutate(Casossemana, Sospechosos.semana= Sospechosos - lag(Sospechosos, default = Sospechosos[1]))
+Casossemana <- mutate(Casossemana, Recuperados.semana= Recuperados - lag(Recuperados, default = Recuperados[1]))
+Casossemana <- mutate(Casossemana, Positividad.semanal= round((Confirmados.semana / Pruebas.semana)*100,1))
+Casossemana <- mutate(Casossemana, ISSSTESON= C_Estatal - lag(C_Estatal, default = C_Estatal[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, C_0_14= C_0_14 - lag(C_0_14, default = C_0_14[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, C_15_29= C_15_29 - lag(C_15_29, default = C_15_29[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, C_30_59= C_30_59 - lag(C_30_59, default = C_30_59[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, C_60_mas= C_60_mas - lag(C_60_mas, default = C_60_mas[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, D_0_14= D_0_14 - lag(D_0_14, default = D_0_14[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, D_15_29= D_15_29 - lag(D_15_29, default = D_15_29[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, D_30_59= D_30_59 - lag(D_30_59, default = D_30_59[1], order_by=Fecha))
+Casossemana <- mutate(Casossemana, D_60_mas= D_60_mas - lag(D_60_mas, default = D_60_mas[1], order_by=Fecha))
+Sonora.DF <- mutate(Sonora.DF, "0-14"= round((D_0_14/ C_0_14 )*100,2))
+Sonora.DF <- mutate(Sonora.DF, "15-29"= round((D_15_29/ C_15_29 )*100,2))
+Sonora.DF <- mutate(Sonora.DF, "30-59"= round((D_30_59/ C_30_59 )*100,2))
+Sonora.DF <- mutate(Sonora.DF, "60 o más"= round((D_60_mas/ C_60_mas )*100,2))
+Casossemana <- Casossemana %>% mutate(pctj_menores=round(C_0_14*100/Casos.semana, 1)) 
+
+Casosfiltro <- Casossemana %>% filter(Fecha>=as.Date("2020-11-01")) 
+
+Sonora.dia <- filter(Sonora.DF,Fecha==max(as.Date(Fecha)))
+
+Fechas <- data.frame(Fecha=as.Date(Sonora.DF$Fecha)) 
+
+Sintomassemanas <- Sonora.Sintomas %>% 
+  full_join(Fechas, by="Fecha") %>% arrange(Fecha) %>% 
+  mutate_if(is.numeric,coalesce,0) %>% mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
+                                              Decesos.semana=rollsum(Decesos, 7, align="right", fill = 0),
+                                              C_0_14.semana=rollsum(C_0_14, 7, align="right", fill = 0),
+                                              C_15_29.semana=rollsum(C_15_29, 7, align="right", fill = 0),
+                                              C_30_59.semana=rollsum(C_30_59, 7, align="right", fill = 0),
+                                              C_60_mas.semana=rollsum(C_60_mas, 7, align="right", fill = 0),
+                                              D_0_14.semana=rollsum(D_0_14, 7, align="right", fill = 0),
+                                              D_15_29.semana=rollsum(D_15_29, 7, align="right", fill = 0),
+                                              D_30_59.semana=rollsum(D_30_59, 7, align="right", fill = 0),
+                                              D_60_mas.semana=rollsum(D_60_mas, 7, align="right", fill = 0)) %>% 
+                                select(Fecha, Casos.semana, Decesos.semana, C_0_14.semana, C_15_29.semana, C_30_59.semana, 
+                                       C_60_mas.semana, D_0_14.semana, D_15_29.semana, D_30_59.semana, D_60_mas.semana) %>% 
+  mutate(diasemana = weekdays(Fecha)) %>% 
+  filter(diasemana==lundom) %>% mutate(pctj_menores=round(C_0_14.semana*100/Casos.semana, 2))
+
+Decesossemanas <- Sonora.Defuncion %>% 
+  full_join(Fechas, by="Fecha") %>% arrange(Fecha) %>% 
+  mutate_if(is.numeric,coalesce,0) %>% mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
+                                              Decesos.semana=rollsum(Decesos, 7, align="right", fill = 0),
+                                              C_0_14.semana=rollsum(C_0_14, 7, align="right", fill = 0),
+                                              C_15_29.semana=rollsum(C_15_29, 7, align="right", fill = 0),
+                                              C_30_59.semana=rollsum(C_30_59, 7, align="right", fill = 0),
+                                              C_60_mas.semana=rollsum(C_60_mas, 7, align="right", fill = 0),
+                                              D_0_14.semana=rollsum(D_0_14, 7, align="right", fill = 0),
+                                              D_15_29.semana=rollsum(D_15_29, 7, align="right", fill = 0),
+                                              D_30_59.semana=rollsum(D_30_59, 7, align="right", fill = 0),
+                                              D_60_mas.semana=rollsum(D_60_mas, 7, align="right", fill = 0)) %>% 
+  select(Fecha, Decesos.semana, D_0_14.semana, D_15_29.semana, D_30_59.semana, D_60_mas.semana) %>% 
+  mutate(diasemana = weekdays(Fecha)) %>% 
+  filter(diasemana==lundom)
+
+Hospitalizaciones <- read_csv("http://archivos.serendipiadata.com/ocupacion/concentrado/ocupacion_hospitalaria_Entidad_sin_ceros.csv", 
+                                        col_types = cols(FECHA = col_date(format = "%Y-%m-%d")), 
+                                        locale = locale()) %>% filter(Estado=="Sonora") %>% rename(Fecha=FECHA)  %>% filter(!is.na(Fecha))
+
+Hospitalizaciones.dia <- filter(Hospitalizaciones, Tipo=="General", Fecha==max(as.Date(Fecha)))  
+```
+
+```{r, include=FALSE}
+Casos <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/Casosdiarios_SSFED.csv", 
+    col_types = cols(CASOS = col_integer(), 
+        CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
+        MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
+    locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
+casosacumdia <- filter(Casos,Fecha==max(as.Date(Fecha)))
+casosacumdiaorder <- arrange(casosacumdia,CASOS, desc(MUNICIPIO))
+casosacumdia2 <- mutate(casosacumdiaorder,id=CVEGEO)
+```
+
+
+```{r, include=FALSE}
+Decesos <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/Decesosdiarios_SSFED.csv", 
+     col_types = cols(DECESOS = col_integer(), 
+        CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
+        MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
+    locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
+decesosacumdia <- filter(Decesos,Fecha==max(as.Date(Fecha)))
+decesosacumdiaorder <- arrange(decesosacumdia,DECESOS, desc(MUNICIPIO))
+decesosacumdia2 <- mutate(decesosacumdiaorder,id=CVEGEO)
+```
+
+```{r, include=FALSE}
+casos_s <- group_by(Casos, CVEGEO, MUNICIPIO)
+casos_ult <- casos_s %>% filter(NUEVOS!=0) %>% arrange(desc(Fecha)) %>% slice(1)
+casos_ult_dias <- mutate(casos_ult, Dias_ult=as.numeric(max(as.Date(Fecha))-Fecha)) 
+casos_ult_dias <- mutate(casos_ult_dias, clasfdias=if_else(Dias_ult>30,5, if_else(Dias_ult>14,4, if_else(Dias_ult>7,3,if_else(Dias_ult>0,2,1)))))
+casos_ult_dias <- mutate(casos_ult_dias, clasfdias=as.numeric(clasfdias))
+casos_ult_dias <- mutate(casos_ult_dias,id=CVEGEO)
+diaspmap<-casos_ult_dias %>%  rename(FechaUC=Fecha) %>% select(FechaUC, CVEGEO, Dias_ult, clasfdias)
+write.csv(casos_ult_dias,'C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/ResultadoCSV/Municipiosdiasdesdecasos.csv')
+```
+
+```{r}
+casos_pal <- function(x) rgb(colorRamp(c("#EAF6F6", "#7FCDCB"))(x), maxColorValue = 255)
+decesos_pal <- function(x) rgb(colorRamp(c("#FBF3F7", "#E0A3C1"))(x), maxColorValue = 255)
+decesosacumdia3 <- rename(decesosacumdia,'DECESOS NUEVOS'=NUEVOS)
+casosacumdia3 <- rename(casosacumdia,'CASOS NUEVOS'=NUEVOS)
+casosdecesos <-left_join(casosacumdia3, decesosacumdia3,by = c("CVEGEO","Fecha","MUNICIPIO"))
+casosdecesospob <- left_join(casosdecesos, POBMUN, by = "CVEGEO")
+Indicadores <- casosdecesospob %>% mutate (INCIDENCIAACUM = round((CASOS*100000)/POB,1), MORTALIDADACUM = round((DECESOS*100000)/POB,1), LETALIDAD = round((DECESOS*100/CASOS),1))
+Indicadores <- rename(Indicadores, POBLACION=POB)
+Indicadores <- mutate(Indicadores,id=CVEGEO)
+```
+
+
+Estatal
+===================================== 
+
+Row
+-----------------------------------------------------------------------
+```{r, include=FALSE}
+CasosSonora = function(...) return(Sonora.dia$Confirmados)
+DecesosSonora = function(...) return(Sonora.dia$Decesos)
+HospSonora = function(...) return(Hospitalizaciones.dia)
+RecuperadosSonora = function(...) return(Sonora.dia$Recuperados)
+IncidenciaSonora= function(...) return(Sonora.dia$Incidencia)
+LetalidadSonora= function(...) return(Sonora.dia$Letalidad)
+Recup100Sonora= function(...) return(67)
+```
+
+### **Casos acumulados**
+
+```{r}
+CasosSon = CasosSonora()
+valueBox(comma(CasosSon), icon = "fa-certificate", color = "#01787E")
+```
+
+### **Decesos acumulados**
+
+```{r}
+DecesosSon = DecesosSonora()
+valueBox(comma(DecesosSon), icon= "fa-plus", color = "#993366")
+```
+
+### **Ocupación Hospitalaria**
+```{r}
+Hospitalizados = HospSonora()
+valueBox(percent(Hospitalizaciones.dia$`% Ocupación`/100), icon = "fa-hospital-o", color = "#F79646")
+```
+
+### **Recuperados**
+```{r}
+Recuperados = RecuperadosSonora()
+valueBox(comma(Recuperados), icon = "fa-arrow-circle-up", color = "#4F81BD")
+```
+
+
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+### **Casos por semana de inicio de síntomas**
+```{r, include=FALSE}
+Casos_Semanales <- ggplot(Sintomassemanas) +
+    geom_col(aes(x = Fecha, y = Casos.semana, fill = Casos.semana)) +
+    scale_fill_gradient2(low = "#DEF2F2", mid= "#01A2AC", high = "#005156", midpoint =3000) +
+    scale_x_date(expand=c(0,5), date_breaks = "6 month", date_labels = "%B \n %Y") +
+    scale_y_continuous(expand = c(0, 5)) +
+    theme(axis.line = element_line(linetype = "solid"), plot.margin = margin(1, 3, 1, 3, "cm"),
+          plot.title = (element_text(family = "Lato Black", size = 30)),
+          strip.text = element_text(family = "Lato Black", size = 16), strip.background = element_rect(fill="white"),
+          axis.text = element_text(family = "Lato", size =10),
+          panel.grid.major = element_line(colour = "white"), 
+          panel.grid.minor = element_line(colour = "white"), 
+          axis.title = element_text(family = "Lato", size = 15),
+          panel.background = element_rect(fill = "gray95"), 
+          legend.position = "none") +labs(y = NULL, x = NULL, title  = NULL) + 
+  theme(panel.grid.major = element_line(colour = "white"), panel.grid.minor = element_line(colour = "white"), panel.background = element_rect(fill = "white"),
+        legend.position = "none")
+```
+
+```{r}
+ggplotly(Casos_Semanales , tooltip = c("x", "y")) %>%
+  layout(legend = list(orientation = "h",
+                   y = 80, x = 0)) %>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+### **Decesos por semana de ocurridos**
+```{r, include=FALSE}
+Decesos_Semanales <- ggplot(Decesossemanas) +
+    geom_col(mapping = aes(x = Fecha, y = Decesos.semana, fill= Decesos.semana),) +
+    scale_x_date(expand=c(0,5), date_breaks = "6 month", date_labels = "%B \n %Y") +
+    scale_y_continuous(expand = c(0, 0)) +
+      scale_fill_gradient2(low = "#F0D1E0", mid= "#993366", high = "#4D1933", midpoint = 200) +
+    theme(axis.line = element_line(linetype = "solid"), plot.margin = margin(1, 3, 1, 3, "cm"),
+          plot.title = (element_text(family = "Lato Black", size = 30)),
+          strip.text = element_text(family = "Lato Black", size = 16), strip.background = element_rect(fill="white"),
+          axis.text = element_text(family = "Lato", size =10),
+          panel.grid.major = element_line(colour = "white"), 
+          panel.grid.minor = element_line(colour = "white"), 
+          axis.title = element_text(family = "Lato", size = 15),
+          panel.background = element_rect(fill = "gray95"), 
+          legend.position = "none") +labs(y = NULL, x = NULL, title  = NULL) + 
+  theme(panel.grid.major = element_line(colour = "white"), panel.grid.minor = element_line(colour = "white"), panel.background = element_rect(fill = "white"),
+        legend.position = "none")
+```
+
+```{r}
+ggplotly(Decesos_Semanales, tooltip = c("x", "y")) %>%
+  layout(legend = list(orientation = "h",
+                   y = 80, x = 0)) %>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+Row  {data-height=350}
+-----------------------------------------------------------------------
+
+### **Letalidad por grupo de edad**
+```{r, include=FALSE}
+Sonora.SS <- Sonora.dia %>% select ("0-14", "15-29", "30-59", "60 o más") %>% gather(key= SS, value= Letalidad)
+Sonora.SS$SS <- factor(Sonora.SS$SS ,levels = c("0-14", "15-29", "30-59", "60 o más"))
+LetalidadSS <- ggplot(Sonora.SS) +
+   geom_col(aes(x= Letalidad, y= SS), fill= "#993366", color= "white", size= 0.3)+
+          theme_minimal() +
+    theme(
+    legend.position = "left",
+     panel.background = element_rect(fill= "white"),
+    axis.text.y = element_text(family = "Lato", size = 10, color = "black"),
+    axis.text.x = element_text(family = "Lato", size = 10, color = "black"),axis.line = element_line(colour = "white"),
+    panel.grid.major.y = element_line(color="white"), 
+    panel.grid.minor.y = element_line(color="white"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(family = "Lato", size = 8)) + 
+    labs(y = NULL, x = "Decesos por cada 100 casos") 
+```
+
+```{r}
+ggplotly(LetalidadSS, tooltip = c("x", "y")) %>%
+  layout(legend = list(orientation = "h",
+                   y = 80, x = 0)) %>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+### **Ocupación hospitalaria**
+```{r, include=FALSE}
+Sonora.Hosp <-Hospitalizaciones %>%  
+  filter(Tipo == "General") 
+Gravgraf <- ggplot(Sonora.Hosp) +
+  geom_area(aes(x= Fecha, y= `% Ocupación`, fill = "% Ocupación"), size= 0.5, alpha=0.5) +
+  geom_line(aes(x= Fecha, y= `% Ocupación`), color = "#E26B0A", size= 0.4, alpha=0.7) +
+    scale_fill_manual(name="", values= c("% Ocupación" = alpha("#FABF8F",0.3), "Graves" = "#E26B0A", "Críticos" = "#974706"  )) +
+      scale_y_continuous(expand = c(0, 0)) +
+      scale_x_date(expand=c(0,5), date_breaks = "6 month", date_labels = "%B \n %Y") +
+       theme_minimal() +
+    theme(
+    legend.position = "none",
+     panel.background = element_rect(fill= "white"),
+    axis.text.y = element_text(family = "Lato", size = 10, color = "black"),
+    axis.text.x = element_text(family = "Lato", size = 10, color = "black"),axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line(color="white"), 
+    panel.grid.minor.y = element_line(color="white"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(family = "Lato", size = 8)) + 
+    labs(y = "% de camas ocupadas", x = NULL)
+```
+
+```{r}
+ggplotly(Gravgraf, tooltip = c("x", "y")) %>%
+  layout(legend = list(orientation = "h",
+                   y = 80, x = 0))%>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+### **Resultados válidos de pruebas**
+```{r, include=FALSE}
+Sonora.pruebas <-Casossemana %>%  
+mutate(Positividad.semana=paste0(Positividad.semanal,"%"))
+Pruebasdiarias <- ggplot(Sonora.pruebas) +
+  geom_col(aes(x= Fecha, y= Pruebas.semana, fill= Positividad.semanal, label=Positividad.semana), size= 0.2) +
+  scale_fill_gradient2(low = "#B7DEE8", mid= "#4BACC6", high = "#215968", midpoint = 30) +
+  scale_y_continuous(expand = c(0, 5)) +
+      scale_x_date(expand=c(0,5), date_breaks = "6 month", date_labels = "%B \n %Y") +
+       theme_minimal() +
+    theme(
+    legend.position = "none",
+     panel.background = element_rect(fill= "white"),
+    axis.text.y = element_text(family = "Lato", size = 10, color = "black"),
+    axis.text.x = element_text(family = "Lato", size = 10, color = "black"),axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line(color="white"), 
+    panel.grid.minor.y = element_line(color="white"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(family = "Lato", size = 8)) + 
+    labs(y = NULL, x = NULL) 
+```
+
+```{r}
+ggplotly(Pruebasdiarias, tooltip = c("x", "y", "label")) %>%
+  layout(legend = list(orientation = "h",
+                   y = 80, x = 0))%>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+Mapa municipal
+===================================== 
+
+Row
+-----------------------------------------------------------------------
+### **Incidencia y mortalidad municipal**
+
+```{r include=FALSE}
+Casossemana <- Casos %>% group_by(MUNICIPIO) %>% 
+  mutate(diasemana = weekdays(Fecha)) %>% 
+  filter(diasemana==weekdays(max(as.Date(Fecha)))) %>% mutate(casossemana =  (CASOS - lag(CASOS, default = 0, order_by=Fecha))) %>% 
+  left_join(POBMUN, by = "CVEGEO") 
+Casossemana <- Casossemana %>% mutate (INCIDENCIASEM= round((casossemana*100000)/POB,1))
+Casossemana$INCIDENCIASEM[Casossemana$INCIDENCIASEM==0] <- NA
+# casossempob <- Casossemana %>% 
+#   mutate(IS=if_else(INCIDENCIASEM>(round(quantile(Casossemana$INCIDENCIASEM, 0.90, na.rm=TRUE),0)),1, 
+#                     if_else(INCIDENCIASEM>(round(quantile(Casossemana$INCIDENCIASEM, 0.75, na.rm=TRUE),0)),2, 
+#                             if_else(INCIDENCIASEM>(round(quantile(Casossemana$INCIDENCIASEM, 0.50, na.rm=TRUE),0)),3,
+#                                     if_else(INCIDENCIASEM>(round(quantile(Casossemana$INCIDENCIASEM, 0.25, na.rm=TRUE),0)),4,5))))) %>%
+casossempob <- Casossemana %>% mutate(IS=if_else(INCIDENCIASEM>=99.9,1, 
+                                                 if_else(INCIDENCIASEM>49.9,2,
+                                                         if_else(INCIDENCIASEM>9.9,3,4)))) %>% 
+filter(Fecha==max(as.Date(Fecha))) 
+Casossemanales <- casossempob %>% select(CVEGEO, MUNICIPIO, casossemana, INCIDENCIASEM, IS)
+
+
+Decesossemana <- Decesos %>% group_by(MUNICIPIO) %>% 
+  mutate(diasemana = weekdays(Fecha)) %>% 
+  filter(diasemana==weekdays(max(as.Date(Fecha)))) %>% mutate(decesossemana =  (DECESOS - lag(DECESOS, default = 0, order_by=Fecha))) %>%  
+  left_join(POBMUN, by = "CVEGEO") 
+Decesossemana <- Decesossemana %>% mutate (MORTALIDADSEM= round((decesossemana*100000)/POB,1))
+Decesossemana$MORTALIDADSEM[Decesossemana$MORTALIDADSEM==0] <- NA
+decesossempob <-Decesossemana %>% 
+mutate(MS=if_else(MORTALIDADSEM>(round(quantile(Decesossemana$MORTALIDADSEM, 0.75, na.rm=TRUE),0)),1, 
+                    if_else(MORTALIDADSEM>(round(quantile(Decesossemana$MORTALIDADSEM, 0.50, na.rm=TRUE),0)),2, 
+                            if_else(MORTALIDADSEM>(round(quantile(Decesossemana$MORTALIDADSEM, 0.25, na.rm=TRUE),0)),3, 4)))) %>% 
+filter(Fecha==max(as.Date(Fecha)))
+Decesossemanales <- decesossempob %>% select(CVEGEO, MUNICIPIO, decesossemana, MORTALIDADSEM, MS)
+
+diaspan <- as.numeric(max(as.Date(Sonora.DF$Fecha)) - as.Date("2020-03-16"))
+Alta <-(99.9/7)*diaspan
+Substancial <-(49.9/7)*diaspan
+Moderada <-(9.9/7)*diaspan
+
+Mapa <- Indicadores %>%  left_join(diaspmap, by = c("CVEGEO","MUNICIPIO")) %>% 
+  left_join(Casossemanales, by = c("CVEGEO","MUNICIPIO")) %>% left_join(Decesossemanales, by = c("CVEGEO","MUNICIPIO"))%>% rename(concat=CVEGEO) %>% 
+  mutate(IA=if_else(INCIDENCIAACUM>Alta,1,if_else(INCIDENCIAACUM>Substancial,2,if_else(INCIDENCIAACUM>Moderada,3,4)))) %>% 
+  mutate(MA=if_else(MORTALIDADACUM>(Alta/10),1, if_else(MORTALIDADACUM>(Substancial/10),2,if_else(MORTALIDADACUM>(Moderada/10),3,4))))
+
+Mapa1 <- Mapa %>% filter(concat!=26999)
+
+capa_munison <- readOGR("C:/Users/luism/OneDrive/R/COVID/Municipios/Shapes", layer="MUNSON",  encoding = "UTF-8", use_iconv=TRUE)
+NOMMAY <- capa_munison@data %>% select(concat, NOM_MUN) %>% mutate(NOMMAY=toupper(NOM_MUN))
+capa_munison <- capa_munison %>%  merge(Mapa1) %>% merge(NOMMAY)
+
+
+#incipal <- low = "#58BCBC", high = "black"
+#incipal <-  colorNumeric(c("#58BCBC", "black"), domain = capa_munison$INCIDENCIA, na.color ="#d9d9d9")
+#mortpal <-  colorNumeric(c("#993366", "black"), domain = capa_munison$MORTALIDAD, na.color ="#d9d9d9")
+#diaspal <-  colorFactor(c("#A04A69","#ECA48E", "#FECF7D","#0397A1", "#215968"), levels= c("1","2","3","4","5"), domain = capa_munison$clasfdias, na.color ="#d9d9d9")
+incipal <-  colorFactor(c("#CE3F41","#FFA17B","#FECF7D", "#31859C"), levels= c("1","2","3","4"), na.color ="#e8e6e6")
+mortpal <-  colorFactor(c("#CE3F41","#FFA17B","#FECF7D", "#31859C"), levels= c("1","2","3","4"), na.color ="#e8e6e6")
+#discreta <- c("5" = "black", "4" = "#005155","3" = "#01787E","2" = "#01A2AC", "1" = "#58BCBC")
+#incipal <-  colorFactor(c("black","#005155", "#01787E","#01A2AC", "#58BCBC"), levels= c("5","4","3","2","1"), na.color ="#d9d9d9")
+#mortpal <-  colorFactor(c("black","#4D1A33","#73264D", "#993366","#D075A3"), levels= c("5","4","3","2","1"), na.color ="#d9d9d9")
+levels= c("1","2","3","4") 
+labs <- c( "Alta", "Substancial", "Moderada","Baja")
+#diaslab <- c( "0", "1-7", "8-14", "15-30","+30")
+
+#ultpal <- ("Días desde que se \n confirmó el último caso", 
+ #          values = discreta, breaks= c("5", "4", "3", "2", "1"), 
+  #         labels = c( "+30", "15-30", "8-14","1-7", "0")),
+ #c("1" = "#A04A69", "2" = "#ECA48E","3" = "#FECF7D","4" = "#0397A1", "5" = "#215968")
+#letpal low= "#993366", high = "black"
+
+popup <- paste0(
+  "<b>", as.character(capa_munison$NOMMAY), "</b>",     "<br>",                     
+  "<b>", "Casos acumulados: ",        "</b>",   as.character(capa_munison$CASOS)   ,      "<br>",
+  "<b>", "Casos últimos 7 días: ",           "</b>",   as.character(capa_munison$casossemana),      "<br>", 
+  "<b>", "Decesos acumulados: ",           "</b>",   as.character(capa_munison$DECESOS) ,      "<br>", 
+  "<b>", "Decesos últimos 7 días: ",           "</b>",   as.character(capa_munison$decesossemana),      "<br>",
+  "<b>", "Día del último caso confirmado ",  "</b>",   as.Date(capa_munison$FechaUC) , "<br>")  %>% lapply(htmltools::HTML)
+
+
+
+
+mapacovid <- leaflet(capa_munison) %>% 
+    addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+    addLayersControl( 
+      baseGroups = c("INCIDENCIA ÚLTIMOS 7 DÍAS", "INCIDENCIA ACUMULADA", "MORTALIDAD ÚLTIMOS 7 DÍAS", "MORTALIDAD ACUMULADA"), 
+      options = layersControlOptions(collapsed = FALSE, position = "topright")) %>% 
+    addPolygons(data= capa_munison,
+                stroke= TRUE,
+                weight=1.2,                   
+              opacity=1,
+              fillColor = ~incipal(capa_munison$IA),
+              #label = capa_munison$NOMMAY,
+              color= "white",
+              fillOpacity = 1,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "black", 
+                                                  weight = 1.2,
+                                                  bringToFront = TRUE),
+              label=popup, 
+              labelOptions = labelOptions(noHide = F, direction = "right",
+                                          style = list(
+                                            "color" = "black",
+                                            "font-family" = "Arial",
+                                            "font-style" = "regular",
+                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
+                                            "font-size" = "11px",
+                                            "border-color" = "rgba(0,0,0,0.5)"
+                                                       )),
+              group= "INCIDENCIA ACUMULADA") %>%
+  addPolygons(data= capa_munison,
+              stroke= TRUE,
+              weight=1.2,                   
+              opacity=1,
+              fillColor = ~incipal(capa_munison$IS),
+              #label = capa_munison$NOMMAY,
+              color= "white",
+              fillOpacity = 1,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "black", 
+                                                  weight = 1.2,
+                                                  bringToFront = TRUE),
+              label=popup, 
+              labelOptions = labelOptions(noHide = F, direction = "right",
+                                          style = list(
+                                            "color" = "black",
+                                            "font-family" = "Arial",
+                                            "font-style" = "regular",
+                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
+                                            "font-size" = "11px",
+                                            "border-color" = "rgba(0,0,0,0.5)"
+                                          )),
+              group= "INCIDENCIA ÚLTIMOS 7 DÍAS") %>%
+  addPolygons(data= capa_munison,
+              stroke= TRUE,
+              weight=1.2,                   
+              opacity=1,
+              fillColor = ~mortpal(capa_munison$MS),
+              color= "white",
+              fillOpacity = 1,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "black", 
+                                                  weight = 1.2,
+                                                  bringToFront = TRUE),
+              label=popup, 
+              labelOptions = labelOptions(noHide = F, direction = "right",
+                                          style = list(
+                                            "color" = "black",
+                                            "font-family" = "Arial",
+                                            "font-style" = "regular",
+                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
+                                            "font-size" = "11px",
+                                            "border-color" = "rgba(0,0,0,0.5)"
+                                          )),
+              group= "MORTALIDAD ÚLTIMOS 7 DÍAS") %>%
+  addPolygons(data= capa_munison,
+              stroke= TRUE,
+              weight=1.2,                   
+              opacity=1,
+              fillColor = ~mortpal(capa_munison$MA),
+              color= "white",
+              fillOpacity = 1,
+              smoothFactor = 0.5,
+              highlightOptions = highlightOptions(color = "black", 
+                                                  weight = 1.2,
+                                                  bringToFront = TRUE),
+              label=popup, 
+              labelOptions = labelOptions(noHide = F, direction = "right",
+                                          style = list(
+                                            "color" = "black",
+                                            "font-family" = "Arial",
+                                            "font-style" = "regular",
+                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
+                                            "font-size" = "11px",
+                                            "border-color" = "rgba(0,0,0,0.5)"
+                                          )),
+              group= "MORTALIDAD ACUMULADA") %>%
+  # addLegend(position = "bottomleft", pal = mortpal, values = ~capa_munison$MA, opacity=1, group= "MORTALIDAD", 
+  #           labFormat = function(type, cuts, p) {  
+  #             paste0(labs)},
+  #           title = "MORTALIDAD", na.label = "N/A")  %>%
+  addLegend(position = "topright", pal = incipal, values = levels, opacity=1, group= "INCIDENCIA", 
+              labFormat = function(type, cuts, p) {  
+               paste0(labs)} ,
+              title = NULL, na.label = "N/A") 
+
+```
+
+```{r}
+mapacovid
+```
+
+Evolución
+===================================== 
+
+Row {.tabset}
+-----------------------------------------------------------------------
+### **Casos semanales**
+```{r}
+Casossem <- Casos %>% group_by(MUNICIPIO) %>% 
+  mutate(diasemana = weekdays(Fecha), 'CASOS SEMANALES' = NUEVOS) %>% rename(ACUMULADOS=CASOS) %>% 
+  filter(diasemana==weekdays(max(as.Date(Fecha)))) %>% mutate('CASOS SEMANALES' =  (ACUMULADOS - lag(ACUMULADOS, default = 0, order_by=Fecha))) %>%  filter(Fecha>=as.Date("2022-01-01"))
+
+write.csv(Casossem, 'C:/Users/luism/OneDrive/R/COVID/Municipios/ResultadoCSV/casossem.csv')
+
+Casossem[Casossem<0] <- 0
+Casos_Semanales <- ggplot(subset(Casossem, MUNICIPIO %in% c("Hermosillo", "Cajeme", "Nogales", "San Luis Río Colorado", "Navojoa", "Guaymas", "Caborca", "Agua Prieta", "Huatabampo", "Puerto Peñasco", "Etchojoa", "Empalme", "Cananea","Magdalena", "Álamos", "Bácum"))) +
+    geom_col(mapping = aes(x = Fecha, y = `CASOS SEMANALES`, fill = `CASOS SEMANALES`, label= ACUMULADOS)) +
+    scale_fill_gradient(low = "#58BCBC", high = "black") + 
+    scale_x_date(expand=c(0,5), date_breaks = "3 month", date_labels = "%B \n %Y") +
+    facet_wrap(~ MUNICIPIO, scales = "free_y") + 
+    theme(axis.line = element_line(linetype = "solid"), plot.margin = margin(1, 3, 1, 3, "cm"),
+          plot.title = (element_text(family = "Lato Black", size = 30)),
+          strip.text = element_text(family = "Lato Black", size = 16), strip.background = element_rect(fill="white"),
+          axis.text = element_text(family = "Lato", size =10),
+          panel.grid.major = element_line(colour = "white"), 
+          panel.grid.minor = element_line(colour = "white"), 
+          axis.title = element_text(family = "Lato", size = 15),
+          panel.background = element_rect(fill = "gray95"), 
+          legend.position = "none") +labs(y = NULL, x = NULL, title  = NULL) + 
+  theme(panel.grid.major = element_line(colour = "white"), panel.grid.minor = element_line(colour = "white"), panel.background = element_rect(fill = "white"),
+        legend.position = "none")
+ggplotly(Casos_Semanales, tooltip = c("y","label", "x")) %>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+### **Decesos semanales**
+```{r}
+Decesossem <- Decesos %>% group_by(MUNICIPIO) %>% 
+  mutate(diasemana = weekdays(Fecha), 'DECESOS SEMANALES' = NUEVOS) %>% rename(ACUMULADOS=DECESOS) %>% 
+  filter(diasemana==weekdays(max(as.Date(Fecha)))) %>% mutate('DECESOS SEMANALES' =  (ACUMULADOS - lag(ACUMULADOS, default = 0, order_by=Fecha))) %>%  filter(Fecha>=as.Date("2022-01-01"))
+
+
+
+write.csv(Decesossem, 'C:/Users/luism/OneDrive/R/COVID/Municipios/ResultadoCSV/decesossem.csv')
+Decesossem[Decesossem<0] <- 0
+Decesos_Semanales <- ggplot(subset(Decesossem, MUNICIPIO %in% c("Hermosillo", "Cajeme", "Nogales", "San Luis Río Colorado", "Navojoa", "Guaymas", "Caborca", "Agua Prieta", "Huatabampo", "Puerto Peñasco", "Etchojoa", "Empalme", "Cananea","Magdalena", "Álamos", "Bácum"))) +
+    geom_col(mapping = aes(x = Fecha, y = `DECESOS SEMANALES`, fill = `DECESOS SEMANALES`, label= ACUMULADOS)) +
+    scale_x_date(expand=c(0,5), date_breaks = "3 month", date_labels = "%B \n %Y") +
+    scale_fill_gradient(low = "#993366", high = "black") +
+    facet_wrap(~ MUNICIPIO, scales = "free_y") + 
+    theme(axis.line = element_line(linetype = "solid"), plot.margin = margin(1, 3, 1, 3, "cm"),
+          plot.title = (element_text(family = "Lato Black", size = 30)),
+          strip.text = element_text(family = "Lato Black", size = 16), strip.background = element_rect(fill="white"),
+          axis.text = element_text(family = "Lato", size =10),
+          panel.grid.major = element_line(colour = "white"), 
+          panel.grid.minor = element_line(colour = "white"), 
+          axis.title = element_text(family = "Lato", size = 15),
+          panel.background = element_rect(fill = "gray95"), 
+          legend.position = "none") +labs(y = NULL, x = NULL, title  = NULL) + 
+  theme(panel.grid.major = element_line(colour = "white"), panel.grid.minor = element_line(colour = "white"), panel.background = element_rect(fill = "white"),
+        legend.position = "none")
+ggplotly(Decesos_Semanales, tooltip = c("y", "label", "x")) %>%  config(displaylogo = FALSE,
+modeBarButtonsToRemove = list(
+    'sendDataToCloud',
+    'toImage',
+    'pan2d',
+    'lasso2d',
+    'hoverClosestCartesian',
+    'hoverCompareCartesian',
+    'toggleSpikelines',
+    'select2d',
+    'zoomIn2d',
+    'zoomOut2d',
+    'resetScale2d'
+))
+```
+
+
+Tabla
+=====================================
+[Descarga esta tabla](https://onedrive.live.com/download.aspx?resid=5ADDF6870413EAC9!32159&authkey=!AC27R9r4fs_DWP4)
+```{r}
+CDSELECT<- Mapa %>% select("MUNICIPIO","POBLACION",  "CASOS", casossemana, "DECESOS", decesossemana,"INCIDENCIAACUM", "MORTALIDADACUM", "LETALIDAD") %>% rename("INCIDENCIA\nACUMULADA"=INCIDENCIAACUM, "MORTALIDAD\nACUMULADA" =MORTALIDADACUM, "CASOS\nSEMANA"= casossemana, "DECESOS\nSEMANA" = decesossemana)
+CDSELECT1 <- CDSELECT %>% mutate(DECESOS = coalesce(DECESOS,0L),`DECESOS\nSEMANA` = coalesce(`DECESOS\nSEMANA`,0L), `CASOS\nSEMANA` = coalesce(`CASOS\nSEMANA`,0L), `MORTALIDAD\nACUMULADA` = coalesce(`MORTALIDAD\nACUMULADA`, 0), LETALIDAD = coalesce(LETALIDAD, 0)) %>% filter(MUNICIPIO!="Sin municipio registrado")
+dia<-max(as.Date(Sonora.DF$Fecha))
+
+# paste0("Al reporte del ", day(dia), " de ", months.Date(dia)," de ", year(dia))
+reactable(CDSELECT1,searchable = TRUE, highlight = TRUE, defaultSorted = "CASOS\nSEMANA", defaultSortOrder = "desc",
+  defaultPageSize = 20, minRows = 10, borderless = FALSE, striped = FALSE,
+    language = reactableLang(
+    searchPlaceholder = "Búsqueda...",
+    noData = "No encontrado",
+    pageInfo = "{rowStart} a {rowEnd} de {rows} entradas",
+    pagePrevious = "Previa",
+    pageNext = "Siguiente"), 
+    theme = reactableTheme(
+      headerStyle = list(
+        "&:hover[aria-sort]" = list(background = "hsl(0, 0%, 96%)"),
+        "&[aria-sort='ascending'], &[aria-sort='descending']" = list(background = "hsl(0, 0%, 96%)"),
+        borderColor = "#555"
+      ), style = list(
+      fontFamily = "Lato, Segoe UI, Arial, sans-serif"
+    ),
+    ),
+   columns = list(
+    MUNICIPIO = colDef(footer = paste0("Corte: ", day(dia),"/", month(dia), "/",year(dia))),
+     POBLACION = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), CASOS = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), DECESOS = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), `CASOS\nSEMANA` = colDef(
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), `DECESOS\nSEMANA`= colDef(
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), `INCIDENCIA\nACUMULADA` = colDef(format = colFormat(digits = 1),  footer = "Casos por 100 mil habs.", style = function(value) {
+        normalized <- (value - min(CDSELECT1$`INCIDENCIA\nACUMULADA`)) / (max(CDSELECT1$`INCIDENCIA\nACUMULADA`) - min(CDSELECT1$`INCIDENCIA\nACUMULADA`))
+        color <- casos_pal(normalized)
+        list(background = color)
+      }), 
+    `MORTALIDAD\nACUMULADA` = colDef(format = colFormat(digits = 1), footer = "Decesos por 100 mil habs.", style = function(value) {
+        normalized2 <- (value - min(CDSELECT1$`MORTALIDAD\nACUMULADA`)) / (max(CDSELECT1$`MORTALIDAD\nACUMULADA`) - min(CDSELECT1$`MORTALIDAD\nACUMULADA`))
+        color <- decesos_pal(normalized2)
+        list(background = color)
+      }), 
+    LETALIDAD = colDef(format = colFormat(digits = 1), footer = "Decesos por cada 100 casos", style = function(value) {
+        normalized3 <- (value - min(CDSELECT1$LETALIDAD)) / (max(CDSELECT1$LETALIDAD) - min(CDSELECT1$LETALIDAD))
+        color <- decesos_pal(normalized3)
+        list(background = color)
+      })),
+  defaultColDef = colDef(footerStyle = list(fontWeight = "bold")))
+```
+```{r}
+# CDSELECT2 <- CDSELECT1 %>% select("MUNICIPIO", "CASOS HOY", "DECESOS HOY") %>% filter(`CASOS HOY`!=0 | `DECESOS HOY`!=0) %>% 
+#   rename("VARIACIÓN CASOS"= "CASOS HOY", "VARIACIÓN DECESOS" = "DECESOS HOY")
+# 
+# react <-reactable(CDSELECT2,searchable = FALSE, highlight = FALSE, defaultSorted = "VARIACIÓN CASOS", defaultSortOrder = "desc", defaultPageSize = nrow(CDSELECT2),
+#   borderless = FALSE, striped = FALSE,
+#     language = reactableLang(
+#     searchPlaceholder = "Búsqueda...",
+#     noData = "No encontrado",
+#     pageInfo = "{rowStart} a {rowEnd} de {rows} entradas",
+#     pagePrevious = "Previa",
+#     pageNext = "Siguiente"), 
+#     theme = reactableTheme(
+#       headerStyle = list(
+#         "&:hover[aria-sort]" = list(background = "hsl(0, 0%, 96%)"),
+#         "&[aria-sort='ascending'], &[aria-sort='descending']" = list(background = "hsl(0, 0%, 96%)"),
+#         borderColor = "#555"
+#       ),
+#       style = list(
+#       fontFamily = "Lato, Segoe UI, Arial, sans-serif"
+#     ),
+#     ),
+#    columns = list(
+#     MUNICIPIO = colDef(footer = "TOTAL ESTATAL:"),
+#      POBLACION = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), CASOS = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), DECESOS = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), `VARIACIÓN CASOS` = colDef(
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), `VARIACIÓN DECESOS`= colDef(
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     )),
+#   defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))) %>% reactablefmtr::add_title(font_size = 38, font_family = "Lato Black", "Reporte diario Covid-19 en Sonora") %>% reactablefmtr::add_subtitle(font_size = 18, font_family = "Lato", paste0("Confirmados en el corte del ", day(dia),"/", month(dia), "/",year(dia), " (diferencia en el acumulado al corte respecto al día anterior).")) %>%  reactablefmtr::add_source(font_size = 14, font_family = "Lato Light", "Elaboración Luis Armando Moreno (@dogomoreno) con información de la Secretaría de Salud Federal.|     *Negativos producto de ajustes en el registro.|                 www.luisarmandomoreno.com")
+# 
+# CDSELECT3 <- Mapa %>% select("MUNICIPIO", casossemana, decesossemana) %>% filter(casossemana!=0 | decesossemana!=0) %>% 
+#   rename("CASOS CONFIRMADOS ÚLTIMA SEMANA"= casossemana, "DECESOS CONFIRMADOS ÚLTIMA SEMANA" = decesossemana)
+# 
+# react1 <-reactable(CDSELECT3,searchable = FALSE, highlight = FALSE, defaultSorted = "CASOS CONFIRMADOS ÚLTIMA SEMANA", defaultSortOrder = "desc", defaultPageSize = nrow(CDSELECT3),
+#   borderless = FALSE, striped = FALSE,
+#     language = reactableLang(
+#     searchPlaceholder = "Búsqueda...",
+#     noData = "No encontrado",
+#     pageInfo = "{rowStart} a {rowEnd} de {rows} entradas",
+#     pagePrevious = "Previa",
+#     pageNext = "Siguiente"), 
+#     theme = reactableTheme(
+#       headerStyle = list(
+#         "&:hover[aria-sort]" = list(background = "hsl(0, 0%, 96%)"),
+#         "&[aria-sort='ascending'], &[aria-sort='descending']" = list(background = "hsl(0, 0%, 96%)"),
+#         borderColor = "#555"
+#       ),
+#       style = list(
+#       fontFamily = "Lato, Segoe UI, Arial, sans-serif"
+#     ),
+#     ),
+#    columns = list(
+#     MUNICIPIO = colDef(footer = "TOTAL ESTATAL:"),
+#      POBLACION = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), CASOS = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), DECESOS = colDef(format = colFormat(separators = TRUE),
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), `CASOS CONFIRMADOS ÚLTIMA SEMANA` = colDef(
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     ), `DECESOS CONFIRMADOS ÚLTIMA SEMANA`= colDef(
+#       footer = JS("function(colInfo) {
+#         var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+#         var total = values.reduce(function(a, b) { return a + b }, 0)
+#         return total.toFixed(0)
+#       }"), 
+#     )),
+#   defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))) %>% reactablefmtr::add_title(font_size = 38, font_family = "Lato Black", "Reporte semanal Covid-19 en Sonora") %>% reactablefmtr::add_subtitle(font_size = 20, font_family = "Lato", paste0("Confirmados en los últimos 7 días al corte del ", day(dia),"/", month(dia), "/",year(dia), " (diferencia en el acumulado al corte respecto al de hace 8 días).")) %>%  reactablefmtr::add_source(font_size = 14, font_family = "Lato Light", "Elaboración Luis Armando Moreno (@dogomoreno) con información de la Secretaría de Salud Federal.|                www.luisarmandomoreno.com")
+
+#reactablefmtr::save_reactable(react1, "C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Gráficos semanales/tablacasossemana.png")
+
+CDSELECT4 <- Mapa %>% select("MUNICIPIO", CASOS, DECESOS) 
+
+react2 <-reactable(CDSELECT4,searchable = FALSE, highlight = FALSE, defaultSorted = "CASOS", defaultSortOrder = "desc", defaultPageSize = nrow(CDSELECT4),
+  borderless = FALSE, striped = FALSE,
+    language = reactableLang(
+    searchPlaceholder = "Búsqueda...",
+    noData = "No encontrado",
+    pageInfo = "{rowStart} a {rowEnd} de {rows} entradas",
+    pagePrevious = "Previa",
+    pageNext = "Siguiente"), 
+    theme = reactableTheme(
+      headerStyle = list(
+        "&:hover[aria-sort]" = list(background = "hsl(0, 0%, 96%)"),
+        "&[aria-sort='ascending'], &[aria-sort='descending']" = list(background = "hsl(0, 0%, 96%)"),
+        borderColor = "#555"
+      ),
+      style = list(
+      fontFamily = "Lato, Segoe UI, Arial, sans-serif"
+    ),
+    ),
+   columns = list(
+    MUNICIPIO = colDef(footer = "TOTAL ESTATAL:"),
+     POBLACION = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), CASOS = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), DECESOS = colDef(format = colFormat(separators = TRUE),
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), `CASOS CONFIRMADOS\nÚLTIMA SEMAN` = colDef(
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    ), `DECESOS CONFIRMADOS\nÚLTIMA SEMAN`= colDef(
+      footer = JS("function(colInfo) {
+        var values = colInfo.data.map(function(row) { return row[colInfo.column.id] })
+        var total = values.reduce(function(a, b) { return a + b }, 0)
+        return total.toFixed(0)
+      }"), 
+    )),
+  defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))) %>% reactablefmtr::add_title(font_size = 38, font_family = "Lato Black", "Reporte acumulado Covid-19 en Sonora") %>% reactablefmtr::add_subtitle(font_size = 20, font_family = "Lato", paste0("Acumulados al corte del ", day(dia),"/", month(dia), "/",year(dia))) %>%  reactablefmtr::add_source(font_size = 14, font_family = "Lato Light", "Elaboración Luis armando Moreno (@dogomoreno) con información de la Secretaría de Salud Federal.|            www.luisarmandomoreno.com")
+
+reactablefmtr::save_reactable(react2, "C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Gráficos diarios/tablacasosacumulados.png")
+
+# write.csv(CDSELECT2,'C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/ResultadoCSV/tablacasoshoy.csv')
+# write.csv(CDSELECT3,'C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/ResultadoCSV/tablacasossemana.csv')
+write.csv(CDSELECT4,'C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/ResultadoCSV/tablacasosacumulados.csv')
+
+```
+
+```{r, include=FALSE}
+write.csv(CDSELECT1,'C:/Users/luism/OneDrive/R/COVID/Municipios/ResultadoCSV/Indicadores-Municipios-Sonora.csv')
+```
+
+Notas
+===================================== 
+**NOTAS**
+Por continuidad en las series de tiempo, la fecha de corte se asume como la del día anterior al reporte.
+
+$INCIDENCIA = Casos confirmados * 100 mil / Población$
+ 
+$MORTALIDAD = Decesos confirmados * 100 mil / Población$ 
+
+$LETALIDAD = Decesos confirmados * 100 / Casos confirmados$
+
+La clasificación de la incidencia y la mortalidad municipal en el mapa, se refiere a ordenar de menor a mayor los resultados municipales y clasificar, se toman los umbrales de la [ CDC de Estados Unidos ](https://www.cdc.gov/coronavirus/2019-ncov/community/schools-childcare/operation-strategy.html)  en las consideraciones para la operación de las escuelas, para el resto de los indicadores se toman los cuantiles: 
+
+**Clasificación**   | Umbral CDC (Incidencia semanal)    
+
+**Baja:**              | 0-9          
+
+**Moderada:**        | 10-49          
+
+**Substancial:**     | 50-99          
+
+**Alta:**            | ≥ 100        
+
+
+
+**FUENTES**
+
+Procesamiento de la información de datos abiertos de la Secretaría de Salud del Gobierno de la República.
+
+Población de los municipios de Sonora según los resultados del Censo de Población y Vivienda 2020 de INEGI.
+
+[Plataforma Covid-19 del Departamento de Matemáticas de la Universidad de Sonora](https://covid19data.unison.mx/)
+
+[Operating schools during COVID-19: CDC's Considerations](https://www.cdc.gov/coronavirus/2019-ncov/community/schools-childcare/operation-strategy.html)
+
+Datos de capacidad hospitalaria del blog de Serendipia-Data [Datos abiertos de ocupación hospitalaria en México](https://serendipia.digital/covid-19/datos-abiertos-de-ocupacion-hospitalaria-en-mexico/)
+
+**DESCARGAS**
+
+[CSV Casos confirmados municipales](https://onedrive.live.com/download.aspx?resid=5ADDF6870413EAC9!40221&authkey=!AHWUE_EQfhvGRm4)
+
+[CSV Decesos confirmados municipales](https://onedrive.live.com/download.aspx?resid=5ADDF6870413EAC9!40220&authkey=!AJSQUMGHcbwfWf0)
+
+[CSV Reporte Estatal](https://onedrive.live.com/download.aspx?resid=5ADDF6870413EAC9!40217&authkey=!AMgDBVs11T8IHI4)
+
+[CSV Población 2020 de los municipios de Sonora](https://onedrive.live.com/download.aspx?resid=5ADDF6870413EAC9!40218&authkey=!AARItLcji8-QS-Q)
+
+
+
+
+**Repositorio del proyecto:** [Covid19-Sonora-Municipios](https://github.com/dogomoreno/Covid19-Sonora-Municipios) 
+
+
+[www.sonoraendatos.com](www.sonoraendatos.com)
+
+Row {data-height=10}
+-----------------------------------------------------------------------
+```{r, fig.width=2, fig.height=2}
+knitr::include_graphics("https://www.luisarmandomoreno.com/wp-content/uploads/2022/05/SEDfesp.png") 
+```
+
+
+
+
