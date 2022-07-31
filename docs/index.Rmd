@@ -71,7 +71,7 @@ library(rcartocolor)
 ```
 
 ```{r, include=FALSE}
-POBMUN <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/POBMUN.csv", locale = locale(encoding = "ISO-8859-1"), col_types = cols(CVEGEO = col_character()))
+POBMUN <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/POBMUN.csv", locale = locale(encoding = "UTF-8"), col_types = cols(CVEGEO = col_character()))
 Sonora.DF <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/ST_SonoraReporte_SSFED.csv", 
                       col_types = cols(fecha_reporte = col_date(format = "%Y-%m-%d"))) %>% 
   rename(Fecha=fecha_reporte, Pruebas=Resultados_lab, Confirmados=Casos) %>% filter(!is.na(Fecha))  
@@ -165,7 +165,7 @@ Casos <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/Casosdia
     col_types = cols(CASOS = col_integer(), 
         CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
         MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-    locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
+    locale = locale(encoding = "UTF-8")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
 casosacumdia <- filter(Casos,Fecha==max(as.Date(Fecha)))
 casosacumdiaorder <- arrange(casosacumdia,CASOS, desc(MUNICIPIO))
 casosacumdia2 <- mutate(casosacumdiaorder,id=CVEGEO)
@@ -177,7 +177,7 @@ Decesos <- read_csv("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Bases/Deceso
      col_types = cols(DECESOS = col_integer(), 
         CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
         MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-    locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
+    locale = locale(encoding = "UTF-8")) %>% filter(Fecha>as.Date("2020-11-01"))  %>% filter(!is.na(Fecha))
 decesosacumdia <- filter(Decesos,Fecha==max(as.Date(Fecha)))
 decesosacumdiaorder <- arrange(decesosacumdia,DECESOS, desc(MUNICIPIO))
 decesosacumdia2 <- mutate(decesosacumdiaorder,id=CVEGEO)
@@ -985,7 +985,7 @@ react2 <-reactable(CDSELECT4,searchable = FALSE, highlight = FALSE, defaultSorte
         return total.toFixed(0)
       }"), 
     )),
-  defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))) %>% reactablefmtr::add_title(font_size = 38, font_family = "Lato Black", "Reporte acumulado Covid-19 en Sonora") %>% reactablefmtr::add_subtitle(font_size = 20, font_family = "Lato", paste0("Acumulados al corte del ", day(dia),"/", month(dia), "/",year(dia))) %>%  reactablefmtr::add_source(font_size = 14, font_family = "Lato Light", "Elaboración Luis armando Moreno (@dogomoreno) con información de la Secretaría de Salud Federal.|            www.luisarmandomoreno.com")
+  defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))) %>% reactablefmtr::add_title(font_size = 38, "Reporte acumulado Covid-19 en Sonora") %>% reactablefmtr::add_subtitle(font_size = 20, paste0("Acumulados al corte del ", day(dia),"/", month(dia), "/",year(dia))) %>%  reactablefmtr::add_source(font_size = 14, "Elaboración Luis armando Moreno (@dogomoreno) con información de la Secretaría de Salud Federal.|            www.luisarmandomoreno.com")
 
 reactablefmtr::save_reactable(react2, "C:/Users/luism/OneDrive/R/COVID/Sonora_Federal/Gráficos diarios/tablacasosacumulados.png")
 

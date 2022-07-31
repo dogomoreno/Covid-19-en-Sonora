@@ -501,12 +501,12 @@ Casos <- read_csv("Bases/Casosdiarios_SSFED.csv",
                   col_types = cols(CASOS = col_integer(), 
                                    CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                    MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                  locale = locale(encoding = "ISO-8859-1"))
+                  locale = locale(encoding = "UTF-8"))
 Decesos <- read_csv("Bases/Decesosdiarios_SSFED.csv", 
                     col_types = cols(DECESOS = col_integer(), 
                                      CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                      MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                    locale = locale(encoding = "ISO-8859-1"))
+                    locale = locale(encoding = "UTF-8"))
 
 HilloCasos <- Casos %>%
   mutate(diasemana = weekdays(Fecha)) %>% filter(diasemana==lundom) %>% 
@@ -825,7 +825,7 @@ ggsave("Gráficos semanales/s10.png",DecesosEdadG, width = 5 * (16/9), height = 
 
 SINTOMAS <- read_csv("Bases/COVIDSONORA_SINTOMAS.csv", 
                      col_types = cols(X1 = col_skip(), fecha_sintomas = col_date(format = "%Y-%m-%d")), 
-                     locale = locale(encoding = "ISO-8859-1"))
+                     locale = locale(encoding = "UTF-8"))
 SINTOMAS <- SINTOMAS %>% 
   select(fecha_sintomas, confirmados, decesos, hospitalizados) %>% group_by(fecha_sintomas) %>% summarise(confirmados=sum(confirmados), decesos=sum(decesos), hospitalizados=sum(hospitalizados)) %>% 
   mutate(confirmados.acum=cumsum(confirmados), decesos.acum=cumsum(decesos), hospitalizados.acum=cumsum(hospitalizados)) %>% 
@@ -930,7 +930,7 @@ ggsave("Gráficos semanales/s25.png",Menores , width = 5 * (16/9), height = 5, t
 
 INGRESO <- read_csv("Bases/ST_SonoraIngreso_SSFED.csv", 
                      col_types = cols(X1 = col_skip(), fecha_ingreso = col_date(format = "%Y-%m-%d")), 
-                     locale = locale(encoding = "ISO-8859-1")) %>% rename(Fecha=fecha_ingreso)
+                     locale = locale(encoding = "UTF-8")) %>% rename(Fecha=fecha_ingreso)
 
 Fechas <- data.frame(Fecha=as.Date(Sonora.DF$Fecha)) 
 

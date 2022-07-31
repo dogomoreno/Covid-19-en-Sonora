@@ -33,11 +33,11 @@ Casos <-  read_csv("Bases/Activosdiarios_SSFED.csv",
                    col_types =cols(CASOS_ACTIVOS = col_integer(), 
                                    CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                    MUNICIPIO = col_character(), X1 = col_skip()), 
-                   locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>=as.Date("2022-01-01")) %>% 
+                   locale = locale(encoding = "UTF-8")) %>% filter(Fecha>=as.Date("2022-01-01")) %>% 
   rename(CASOS=CASOS_ACTIVOS)
 
 POBMUN <- read_csv("Bases/POBMUN.csv", col_types = cols(CVEGEO = col_character()), 
-                   locale = locale(encoding = "ISO-8859-1"))
+                   locale = locale(encoding = "latin1"))
 
 Casossemana <- Casos %>% group_by(MUNICIPIO) %>% 
   mutate(diasemana = weekdays(Fecha)) %>% 

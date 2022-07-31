@@ -45,7 +45,7 @@ subtituloact <- paste0("Casos activos (que iniciaron síntimas dentro de los 14 
 
 fuentefech <- "Elaboración Luis Armando Moreno (@dogomoreno) con información de la Secretaría de Salud del Gobierno de la República\n*El registro de los últimos 14 días aún se están alimentando en el sistema | www.luisarmandomoreno.com"
 POBMUN <- read_csv("Bases/POBMUN.csv", col_types = cols(CVEGEO = col_character()), 
-                   locale = locale(encoding = "ISO-8859-1"))
+                   locale = locale(encoding = "UTF-8"))
 
 temasmap <-  theme(axis.line = element_blank(),
                       plot.margin = margin(10, 10, 10, 10),
@@ -75,7 +75,7 @@ Casos <- read_csv("Bases/Casosdiarios_SSFED.csv",
                   col_types = cols(CASOS = col_integer(), 
                                    CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                    MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                  locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-10-08")) %>% filter(CVEGEO!=26999)
+                  locale = locale(encoding = "UTF-8")) %>% filter(Fecha>as.Date("2020-10-08")) %>% filter(CVEGEO!=26999)
 casosacumdia <- Casos %>% filter(Fecha==max(as.Date(Fecha))) %>% filter(NUEVOS!=0) %>% select (Fecha, MUNICIPIO, CASOS, NUEVOS) %>% arrange(desc(NUEVOS)) %>% 
 write.csv('ResultadoCSV/casoshoy.csv')
 
@@ -84,7 +84,7 @@ Decesos <- read_csv("Bases/Decesosdiarios_SSFED.csv",
                     col_types = cols(DECESOS = col_integer(), 
                                      CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                      MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                    locale = locale(encoding = "ISO-8859-1")) %>% filter(Fecha>as.Date("2020-10-08")) %>% filter(CVEGEO!=26999)
+                    locale = locale(encoding = "UTF-8")) %>% filter(Fecha>as.Date("2020-10-08")) %>% filter(CVEGEO!=26999)
 decesosacumdia <- Decesos %>% filter(Fecha==max(as.Date(Fecha))) %>% filter(NUEVOS!=0) %>% select (Fecha, MUNICIPIO, DECESOS, NUEVOS) %>% arrange(desc(NUEVOS)) %>% 
   write.csv('ResultadoCSV/decesoshoy.csv')
 
@@ -233,7 +233,7 @@ Activosmun <- read_csv("Bases/Activosdiarios_SSFED.csv",
                        col_types = cols(CASOS_ACTIVOS = col_integer(), 
                                         CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                         MUNICIPIO = col_character(), X1 = col_skip()), 
-                       locale = locale(encoding = "ISO-8859-1")) %>% filter(CVEGEO!=26999)
+                       locale = locale(encoding = "UTF-8")) %>% filter(CVEGEO!=26999)
 Activosmundia <- Activosmun %>% filter(Fecha==max(as.Date(Fecha))) %>% filter(CASOS_ACTIVOS!=0) %>% select (Fecha, MUNICIPIO, CASOS_ACTIVOS) %>% arrange(desc(CASOS_ACTIVOS)) %>% 
   write.csv('ResultadoCSV/Activosmunhoy.csv')
 

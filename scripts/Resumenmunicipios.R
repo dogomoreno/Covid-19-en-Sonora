@@ -24,7 +24,7 @@ int_breaks_rounded <- function(x, n = 5)  pretty(x, n)[round(pretty(x, n),1) %% 
                     col_types = cols(CASOS = col_integer(), 
                                      CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                      MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                    locale = locale(encoding = "ISO-8859-1")) %>% rename(Casos.diarios=NUEVOS) %>% filter(CVEGEO!=26999) 
+                    locale = locale(encoding = "UTF-8")) %>% rename(Casos.diarios=NUEVOS) %>% filter(CVEGEO!=26999) 
   
   Casossemana <- Casos %>%
     mutate(diasemana = weekdays(Fecha)) %>% filter(diasemana=="sábado") %>% 
@@ -35,7 +35,7 @@ int_breaks_rounded <- function(x, n = 5)  pretty(x, n)[round(pretty(x, n),1) %% 
                       col_types = cols(DECESOS = col_integer(), 
                                        CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                        MUNICIPIO = col_character(), NUEVOS = col_integer(), X1 = col_skip()), 
-                      locale = locale(encoding = "ISO-8859-1")) %>% rename(Decesos.diarios=NUEVOS) %>% filter(CVEGEO!=26999)
+                      locale = locale(encoding = "UTF-8")) %>% rename(Decesos.diarios=NUEVOS) %>% filter(CVEGEO!=26999)
   
  Decesossemana <- Decesos %>%
     mutate(diasemana = weekdays(Fecha)) %>% filter(diasemana=="sábado") %>% 
@@ -46,25 +46,25 @@ int_breaks_rounded <- function(x, n = 5)  pretty(x, n)[round(pretty(x, n),1) %% 
                     col_types = cols(CASOS_SINTOMAS = col_integer(), 
                                      CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                      MUNICIPIO = col_character(), X1 = col_skip()), 
-                    locale = locale(encoding = "ISO-8859-1")) %>% filter(CVEGEO!=26999)
+                    locale = locale(encoding = "UTF-8")) %>% filter(CVEGEO!=26999)
   DecesosDEF <- read_csv("Bases/DecesosdiariosDEF_SSFED.csv", 
                       col_types = cols(DECESOS_OCURRIDOS = col_integer(), 
                                        CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                        MUNICIPIO = col_character(), X1 = col_skip()), 
-                      locale = locale(encoding = "ISO-8859-1")) %>% filter(CVEGEO!=26999) 
+                      locale = locale(encoding = "UTF-8")) %>% filter(CVEGEO!=26999) 
   
   Activosdiarios <- read_csv("Bases/Activosdiarios_SSFED.csv", 
                                    col_types =cols(CASOS_ACTIVOS = col_integer(), 
                                                                           CVEGEO = col_character(), Fecha = col_date(format = "%Y-%m-%d"), 
                                                                           MUNICIPIO = col_character(), X1 = col_skip()), 
-                                   locale = locale(encoding = "ISO-8859-1")) %>% filter(CVEGEO!=26999) 
+                                   locale = locale(encoding = "UTF-8")) %>% filter(CVEGEO!=26999) 
   
   
   Fechahoy <- paste0("Al reporte del ", day(max(Casos$Fecha)), " de ", months.Date(max(Casos$Fecha))," de ", year(max(Casos$Fecha)))
   fuente <- "Elaboración Luis Armando Moreno (@dogomoreno) con información de la Secretaría de Salud del Gobierno de la República\n*El registro de los últimos 14 días aún se están alimentando en el sistema. Casos activos incluyen decesos. | www.luisarmandomoreno.com"
   
   POBMUN <- read_csv("Bases/POBMUN.csv", col_types = cols(CVEGEO = col_character()), 
-                     locale = locale(encoding = "ISO-8859-1"))
+                     locale = locale(encoding = "UTF-8"))
   
   temaejes <- theme(axis.line = element_line(linetype = "solid",color = "black", size = 0.3), 
                     plot.margin = margin(10, 25, 10, 25), panel.grid=element_blank(),
@@ -206,7 +206,7 @@ CasosDecesos <- CasosDecesos %>%
 #
 # fuentefech <- "Elaboración Luis Armando Moreno (@dogomoreno) con información de la Secretaría de Salud del Gobierno de la República\n*El registro de los últimos 14 días aún se están alimentando en el sistema | www.luisarmandomoreno.com"
 # POBMUN <- read_csv("Bases/POBMUN.csv", col_types = cols(CVEGEO = col_character()),
-#                    locale = locale(encoding = "ISO-8859-1"))
+#                    locale = locale(encoding = "UTF-8"))
 
 
 # Sonora.DF <- read_csv("Bases/ST_SonoraReporte_SSFED.csv",

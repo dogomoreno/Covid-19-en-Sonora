@@ -8,7 +8,7 @@ setwd("C:/Users/luism/OneDrive/R/COVID/Sonora_Federal")
 
 # Casos Diarios
 Casosdiarios <- read_csv("Bases/ST_CasosMunicipalesSonora_SSFED.csv",
-                         locale = locale(encoding = "ISO-8859-1"))
+                         locale = locale(encoding = "UTF-8"))
 Casosdiarios[is.na(Casosdiarios)] <- 0
 Casosdiarios<- Casosdiarios %>%
   rename(CVEGEO=CVE_MUN, MUNICIPIO = NOM_MUN) %>% 
@@ -21,7 +21,7 @@ Casosdiarios<- Casosdiarios %>%
 
 # Decesos Diarios
 Decesosdiarios <- read_csv("Bases/ST_DecesosMunicipalesSonora_SSFED.csv",
-                         locale = locale(encoding = "ISO-8859-1"))
+                         locale = locale(encoding = "UTF-8"))
 Decesosdiarios[is.na(Decesosdiarios)] <- 0
 Decesosdiarios<- Decesosdiarios %>%
   rename(CVEGEO=CVE_MUN, MUNICIPIO = NOM_MUN) %>% 
@@ -35,7 +35,7 @@ Decesosdiarios<- Decesosdiarios %>%
 
 
 Casosdiarios <- read_csv("Bases/ST_CasosMunicipalesSonora_FSINTOMAS_SSFED.csv",
-                         locale = locale(encoding = "ISO-8859-1"))
+                         locale = locale(encoding = "UTF-8"))
 Casosdiarios[is.na(Casosdiarios)] <- 0
 Casosdiarios<- Casosdiarios %>%
   rename(CVEGEO=CVE_MUN, MUNICIPIO = NOM_MUN) %>% 
@@ -46,7 +46,7 @@ Casosdiarios<- Casosdiarios %>%
 
 
 Activosdiarios <- read_csv("Bases/ST_ActivosMunicipalesSonora_SSFED.csv",
-                         locale = locale(encoding = "ISO-8859-1"))
+                         locale = locale(encoding = "UTF-8"))
 Activosdiarios[is.na(Activosdiarios)] <- 0
 Activosdiarios<- Activosdiarios %>%
   rename(CVEGEO=CVE_MUN, MUNICIPIO = NOM_MUN) %>% 
@@ -58,7 +58,7 @@ Activosdiarios<- Activosdiarios %>%
 
 # Decesos Diarios
 Decesosdiarios <- read_csv("Bases/ST_DecesosMunicipalesSonora_FDEFUNCION_SSFED.csv",
-                           locale = locale(encoding = "ISO-8859-1"))
+                           locale = locale(encoding = "UTF-8"))
 Decesosdiarios[is.na(Decesosdiarios)] <- 0
 Decesosdiarios<- Decesosdiarios %>%
   rename(CVEGEO=CVE_MUN, MUNICIPIO = NOM_MUN) %>% 

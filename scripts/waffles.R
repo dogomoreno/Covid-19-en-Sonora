@@ -20,15 +20,15 @@ fuente <- "Elaboración Luis Armando Moreno (@dogomoreno) de la Secretaría de S
 
 DEFUNCION <- read_csv("Bases/COVIDSONORA_DEFUNCION.csv", 
                                   col_types = cols(X1 = col_skip(), fecha_def = col_date(format = "%Y-%m-%d")), 
-                                  locale = locale(encoding = "ISO-8859-1"))
+                                  locale = locale(encoding = "UTF-8"))
 
 INGRESO <- read_csv("Bases/COVIDSONORA_INGRESO.csv", 
                       col_types = cols(X1 = col_skip(), fecha_ingreso = col_date(format = "%Y-%m-%d")), 
-                      locale = locale(encoding = "ISO-8859-1"))
+                      locale = locale(encoding = "UTF-8"))
 
 SINTOMAS <- read_csv("Bases/COVIDSONORA_SINTOMAS.csv", 
                     col_types = cols(X1 = col_skip(), fecha_sintomas = col_date(format = "%Y-%m-%d")), 
-                    locale = locale(encoding = "ISO-8859-1"))
+                    locale = locale(encoding = "UTF-8"))
 
 Sonora.DF <- read_csv("Bases/ST_SonoraReporte_SSFED.csv", 
                       col_types = cols(fecha_reporte = col_date(format = "%Y-%m-%d")))
@@ -113,7 +113,7 @@ DEFUNCION <- read_csv("Bases/SonoraCasos.csv",
                         col_types = cols(fecha_sintomas = col_date(format = "%Y-%m-%d"), 
                                          fecha_def = col_date(format = "%Y-%m-%d"), 
                                          fecha_ingreso = col_date(format = "%Y-%m-%d")), 
-                        locale = locale(encoding = "ISO-8859-1")) %>% filter(deceso=="Sí")
+                        locale = locale(encoding = "UTF-8")) %>% filter(deceso=="Sí")
 
 
 Decesostotal <- DEFUNCION %>% select(grupoedad, deceso) %>% 
