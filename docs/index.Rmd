@@ -118,11 +118,12 @@ Casosfiltro <- Casossemana %>% filter(Fecha>=as.Date("2020-11-01"))
 
 Sonora.dia <- filter(Sonora.DF,Fecha==max(as.Date(Fecha)))
 
-Fechas <- data.frame(Fecha=as.Date(Sonora.DF$Fecha)) 
+Fechas <- data.frame(Fecha=seq(as.Date("2020-01-01"), Sys.Date()-1, "days")) 
 
 Sintomassemanas <- Sonora.Sintomas %>% 
-  full_join(Fechas, by="Fecha") %>% arrange(Fecha) %>% 
-  mutate_if(is.numeric,coalesce,0) %>% mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
+  full_join(Fechas, by="Fecha") %>% 
+  mutate_if(is.numeric,coalesce,0) %>%  arrange(Fecha) %>% 
+  mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
                                               Decesos.semana=rollsum(Decesos, 7, align="right", fill = 0),
                                               C_0_14.semana=rollsum(C_0_14, 7, align="right", fill = 0),
                                               C_15_29.semana=rollsum(C_15_29, 7, align="right", fill = 0),

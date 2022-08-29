@@ -131,11 +131,13 @@ Casossemana <- Casossemana %>% mutate(pctj_menores=round(C_0_14*100/Casos.semana
 
 Sonoraacum <- Sonora.DF %>% filter( Fecha == max(Fecha))
 
-Fechas <- data.frame(Fecha=as.Date(Sonora.DF$Fecha)) 
+Fechas <- data.frame(Fecha=seq(as.Date("2020-01-01"), Sys.Date()-1, "days")) 
 
-Sintomassemanas <- Sonora.Sintomas %>% arrange(Fecha) %>% 
+Sintomassemanas <- Sonora.Sintomas %>% 
   full_join(Fechas, by="Fecha") %>%
-  mutate_if(is.numeric,coalesce,0) %>% mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
+  mutate_if(is.numeric,coalesce,0) %>% 
+  ungroup() %>% arrange(Fecha) %>% 
+  mutate(Casos.semana=rollsum(Casos, 7, align="right", fill = 0),
                                               Decesos.semana=rollsum(Decesos, 7, align="right", fill = 0),
                                               C_0_14.semana=rollsum(C_0_14, 7, align="right", fill = 0),
                                               C_15_29.semana=rollsum(C_15_29, 7, align="right", fill = 0),
@@ -1159,7 +1161,7 @@ CasosSonrelativa <- ggplot() +
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
   geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Hospitalizados,  label =paste0(Hospitalizados*100,"%", "; ",prettyNum(Hospitalizados.semana,big.mark = ","),"\n\n")), color="#F79646", 
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
-  geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Casos,  label = paste0(Casos*100,"%", "; ",prettyNum(Casos.semana,big.mark = ","),"\n")), color="#01A2AC", 
+  geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Casos,  label = paste0(Casos*100,"%", "; ",prettyNum(Casos.semana,big.mark = ","))), color="#01A2AC", 
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
   geom_text(aes(x = as.Date("2021-02-19"), y = max(Evolucion$Casos),
                 label = "Campaña de vacunación en Sonora"), stat = "unique", family = "Lato",
