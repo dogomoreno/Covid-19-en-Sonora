@@ -72,7 +72,7 @@ temasinejes <-  theme(axis.line = element_blank(),
                       plot.margin = margin(10, 25, 10, 25),
                       plot.title = element_markdown(family = "Lato Black", size = 25),  
                       plot.subtitle = element_text(family = "Lato Light", size = 10, color = "black"), legend.title = element_blank(),
-                      axis.text.x = element_text(family = "Lato", size =6, angle=90, hjust=0.95,vjust=0.5),   panel.grid= element_blank(),
+                      axis.text.x = element_text(family = "Lato", size =5, angle=90, hjust=0.95,vjust=0.5),   panel.grid= element_blank(),
                       axis.text.y = element_blank(),
                       plot.background = element_rect(fill = "white", color = "white", size = 3),
                       axis.title.x = element_text(family = "Lato Light", size = 8, hjust=1),
@@ -219,8 +219,8 @@ Casosfiltro <- Casossemana %>% filter(Fecha>=as.Date("2020-10-15"))
 Casossemson <- Casosfiltro %>% ggplot() +
   geom_col(aes(x=Fecha, y= Casos.semana, fill= Casos.semana), color= "#005156", size=0.15) +
   scale_fill_gradient2(low = "#DEF2F2", mid= "#01A2AC", high = "#005156", midpoint = 1500) +
-  geom_text( data=subset(Casosfiltro, Casos.semana>= 500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2.5, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Casosfiltro, Casos.semana<500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2.5, color="#01A2AC", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Casosfiltro, Casos.semana>= 500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Casosfiltro, Casos.semana<500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2, color="#01A2AC", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Casosfiltro$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -241,9 +241,9 @@ CasossemSintomas <- ggplot(Sintomassemanas) +
   geom_col(data=subset(Sintomassemanas, Fecha <=dia.act),aes(x=Fecha, y= Casos.semana, fill= Casos.semana), color= "#005156", size=0.15) +
   geom_col(data=subset(Sintomassemanas, Fecha >dia.act),aes(x=Fecha, y= Casos.semana, fill= Casos.semana), color= "#005156", size=0.15) +
   scale_fill_gradient2(low = "#DEF2F2", mid= "#01A2AC", high = "#005156", midpoint = 1500) +
-  geom_text( data=subset(Sintomassemanas, Casos.semana>= 500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Sintomassemanas, Casos.semana<500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 2, color="#01A2AC", angle=90, hjust = -0.2) +
-  scale_x_date(expand=c(0,5), breaks = Sintomassemanas$Fecha, date_labels = "%d/%m") +
+  geom_text( data=subset(Sintomassemanas, Casos.semana>= 500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Sintomassemanas, Casos.semana<500), aes(x=Fecha, y= Casos.semana, label= Casos.semana), family="Lato Black", size= 1.5, color="#01A2AC", angle=90, hjust = -0.2) +
+  scale_x_date(expand=c(0,5), breaks = Sintomassemanas$Fecha, date_labels = "%d/%m", limits = c(as.Date("2020-03-10"),max(Sonora.DF$Fecha)+5)) +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
   coord_cartesian(expand = FALSE, clip = 'off') +
@@ -265,8 +265,8 @@ ggsave("Gráficos semanales/s03sint.png",CasossemSintomas, width = 5 * (16/9), h
 Decesossemson <- Casosfiltro  %>% ggplot() +
   geom_col(aes(x=Fecha, y= Decesos.semana, fill= Decesos.semana), color= "#4D1933", size=0.15) +
   scale_fill_gradient2(low = "#F0D1E0", mid= "#993366", high = "#4D1933", midpoint = 200) +
-  geom_text( data=subset(Casosfiltro, Decesos.semana>= 20), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2.5, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Casosfiltro, Decesos.semana<20), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2.5, color="#993366", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Casosfiltro, Decesos.semana>= 20), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Casosfiltro, Decesos.semana<20), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2, color="#993366", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Casosfiltro$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -286,9 +286,9 @@ DecesosDefuncion <- ggplot(Decesossemanas) +
   geom_col(data=subset(Decesossemanas, Fecha <=dia.act), aes(x=Fecha, y= Decesos.semana, fill= Decesos.semana), color= "#4D1933", size=0.15) +
   geom_col(data=subset(Decesossemanas, Fecha > dia.act), aes(x=Fecha, y= Decesos.semana, fill= Decesos.semana), color= "#4D1933", size=0.15) +
   scale_fill_gradient2(low = "#F0D1E0", mid= "#993366", high = "#4D1933", midpoint = 200) +
-  geom_text( data=subset(Decesossemanas, Decesos.semana>= 15), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Decesossemanas, Decesos.semana<15), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 2, color="#993366", angle=90, hjust = -0.2) +
-  scale_x_date(expand=c(0,5), breaks = Decesossemanas$Fecha, date_labels = "%d/%m") +
+  geom_text( data=subset(Decesossemanas, Decesos.semana>= 15), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Decesossemanas, Decesos.semana<15), aes(x=Fecha, y= Decesos.semana, label= Decesos.semana), family="Lato Black", size= 1.5, color="#993366", angle=90, hjust = -0.2) +
+  scale_x_date(expand=c(0,5), breaks = Decesossemanas$Fecha, date_labels = "%d/%m",limits = c(as.Date("2020-03-31"), max(Sonora.DF$Fecha)+5)) +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
   coord_cartesian(expand = FALSE, clip = 'off') +
@@ -311,8 +311,8 @@ Casosfiltro <- Casossemana %>% filter(Fecha>=as.Date("2020-10-15"))
 Hospsem<- Casosfiltro %>% ggplot() +
   geom_col(aes(x=Fecha, y= hospitalizados.semana, fill= hospitalizados.semana), color= "#984807", size=0.15) +
   scale_fill_gradient2(low = alpha("#F79646",.8), mid=  "#E46C0A", high = "#984807", midpoint = 350) +
-  geom_text( data=subset(Casosfiltro, hospitalizados.semana>= 30), aes(x=Fecha, y= hospitalizados.semana, label= hospitalizados.semana), family="Lato Black", size= 2.5, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Casosfiltro, hospitalizados.semana<30), aes(x=Fecha, y= hospitalizados.semana, label= hospitalizados.semana), family="Lato Black", size= 2.5, color="#E46C0A", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Casosfiltro, hospitalizados.semana>= 30), aes(x=Fecha, y= hospitalizados.semana, label= hospitalizados.semana), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Casosfiltro, hospitalizados.semana<30), aes(x=Fecha, y= hospitalizados.semana, label= hospitalizados.semana), family="Lato Black", size= 1.5, color="#E46C0A", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Casosfiltro$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -332,8 +332,8 @@ Hospsemana <- Casossemana %>% filter(Fecha >= as.Date("2020-03-03"))
 Hospsemson <- ggplot(Hospsemana) +
   geom_col(aes(x=Fecha, y= Hospitalizados.Activos, fill= Hospitalizados.Activos), color= "#984807", size=0.15) +
   scale_fill_gradient2(low = alpha("#F79646",0.4), mid=  "#F79646", high = "#984807", midpoint = 100) +
-  geom_text( data=subset(Casossemana, Hospitalizados.Activos>= 30), aes(x=Fecha, y= Hospitalizados.Activos, label= Hospitalizados.Activos), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Casossemana, Hospitalizados.Activos<30), aes(x=Fecha, y= Hospitalizados.Activos, label= Hospitalizados.Activos), family="Lato Black", size= 2, color="#F79646", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Casossemana, Hospitalizados.Activos>= 30), aes(x=Fecha, y= Hospitalizados.Activos, label= Hospitalizados.Activos), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Casossemana, Hospitalizados.Activos<30), aes(x=Fecha, y= Hospitalizados.Activos, label= Hospitalizados.Activos), family="Lato Black", size= 1.5, color="#F79646", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Hospsemana$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -356,8 +356,8 @@ Activossem <- Casossemana %>% filter(Fecha >= as.Date("2020-03-03"))
 Activos <- ggplot(Activossem) +
   geom_col(aes(x=Fecha, y= Ambulatorios.Activos, fill= Ambulatorios.Activos), color= "#3B9494", size=0.15) +
   scale_fill_gradient2(low = "#BCE4E4", mid= "#58BCBC", high = "black", midpoint = 1500) +
-  geom_text( data=subset(Activossem, Ambulatorios.Activos>= 450), aes(x=Fecha, y= Ambulatorios.Activos, label= Ambulatorios.Activos), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Activossem, Ambulatorios.Activos<450), aes(x=Fecha, y= Ambulatorios.Activos, label= Ambulatorios.Activos), family="Lato Black", size= 2, color="#58BCBC", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Activossem, Ambulatorios.Activos>= 450), aes(x=Fecha, y= Ambulatorios.Activos, label= Ambulatorios.Activos), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Activossem, Ambulatorios.Activos<450), aes(x=Fecha, y= Ambulatorios.Activos, label= Ambulatorios.Activos), family="Lato Black", size= 1.5, color="#58BCBC", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Activossem$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -378,8 +378,8 @@ ggsave("Gráficos semanales/s05.png",Activos, width = 5 * (16/9), height = 5, ty
 Activos <- ggplot(Activossem) +
   geom_col(aes(x=Fecha, y= Activos, fill= Activos), color= "#3B9494", size=0.15) +
   scale_fill_gradient2(low = "#BCE4E4", mid= "#58BCBC", high = "black", midpoint = 1500) +
-  geom_text( data=subset(Activossem, Ambulatorios.Activos>= 450), aes(x=Fecha, y= Activos, label= Activos), family="Lato Black", size= 2, color="white", angle=90, hjust = 1.1) +
-  geom_text( data=subset(Activossem, Ambulatorios.Activos<450), aes(x=Fecha, y= Activos, label= Activos), family="Lato Black", size= 2, color="#58BCBC", angle=90, hjust = -0.2) +
+  geom_text( data=subset(Activossem, Ambulatorios.Activos>= 450), aes(x=Fecha, y= Activos, label= Activos), family="Lato Black", size= 1.5, color="white", angle=90, hjust = 1.1) +
+  geom_text( data=subset(Activossem, Ambulatorios.Activos<450), aes(x=Fecha, y= Activos, label= Activos), family="Lato Black", size= 1.5, color="#58BCBC", angle=90, hjust = -0.2) +
   scale_x_date(expand=c(0,5), breaks = Activossem$Fecha, date_labels = "%d/%m") +
   # scale_x_date(expand=c(0,5), date_breaks = "1 month", date_labels = "%B") +
   scale_y_continuous(expand=c(0,0))+
@@ -1161,7 +1161,7 @@ CasosSonrelativa <- ggplot() +
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
   geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Hospitalizados,  label =paste0(Hospitalizados*100,"%", "; ",prettyNum(Hospitalizados.semana,big.mark = ","),"\n\n")), color="#F79646", 
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
-  geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Casos,  label = paste0(Casos*100,"%", "; ",prettyNum(Casos.semana,big.mark = ","))), color="#01A2AC", 
+  geom_dl( data=subset(Evolucion, Fecha ==dia.ev), aes(x= Fecha, y= Casos,  label = paste0(Casos*100,"%", "; ",prettyNum(Casos.semana,big.mark = ","),"\n")), color="#01A2AC", 
            method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato Black")) +
   geom_text(aes(x = as.Date("2021-02-19"), y = max(Evolucion$Casos),
                 label = "Campaña de vacunación en Sonora"), stat = "unique", family = "Lato",
