@@ -270,7 +270,7 @@ capa_munison_act<- inner_join(capa_munison_df, Activossempob, by="id")
 #discrete <-  rev(carto_pal(5, "Temps"))
 romp <- c("4", "3", "2", "1", "NA")
 discrete <- c("#CE3F41","#FFA17B","#FECF7D", "#31859C","gray90")
-marcas <- c( "Alta\n(100 o más)", "Substancial\n(50-99)", "Moderada\n(10-49)","Baja\n(>0-9)", "Nula\n(0)")
+marcas <- c( "Alta\n(100 o más)", "Substancial\n(50-99)", "Moderada\n(10-49)","Baja\n(<1-9)", "Nula\n(0)")
 
 
 Actmarcas <- data.frame(romp, marcas, discrete) %>% left_join(incidenciaAct, by="romp")

@@ -408,7 +408,7 @@ Activos2022 <- Activossem %>% filter(Fecha>as.Date("2021-12-31"))
   scale_y_continuous(expand=c(0,0))+
   coord_cartesian(expand = FALSE, clip = 'off') +
   theme_minimal() +
-  temasinejes + theme(axis.text.x = element_text(family = "Lato", size =6, angle=0, hjust=0.5 ,vjust=0.5)) +
+  temasinejes + theme(axis.text.x = element_text(family = "Lato", size =6, angle=90, hjust=0.5 ,vjust=0.5)) +
   labs(y = NULL, 
        x = NULL,legend= NULL, title  = "<span style = 'font-size:14pt'>Covid-19 en Sonora:</span><br><span style = 'color:#58BCBC';>Casos activos al cierre de semana en 2022</span>", 
        subtitle= paste0(Fechadom, "\nSe considera caso activo aquel que inicio síntomas dentro de los 14 días previos a la fecha de corte."), caption =fuente)
